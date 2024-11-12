@@ -24,7 +24,7 @@ export default function ControlBar(){
     return (
         <div>
             <button onClick={()=> console.log(state)}></button>
-            <form onSubmit={handleSubmit}>
+            <form method="post" onSubmit={handleSubmit}>
                 <select name="selectXAxis">
                     {
                         state.numericalAttributes.map((item,i)=>{

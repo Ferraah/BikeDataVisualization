@@ -15,6 +15,7 @@ export const getSeoulBikeData = createAsyncThunk('seoulBikeData/fetchData', asyn
 const prepareInitialState = (dataSet) => {
 
     const parsedDataSet = dataSet.map(item => {return {...item, date: new Date(item.Date)}});
+    //const parsedDataSet = dataSet;
 
     // Get all attributes
     const availableAttributes = Object.keys(dataSet[0]);
@@ -22,7 +23,8 @@ const prepareInitialState = (dataSet) => {
     let categoricalAttributes = [];
 
     availableAttributes.forEach(attribute => { 
-        if (typeof parsedDataSet[0][attribute] === 'number') {
+        // We also consider date as numerical despite being an object 
+        if (typeof parsedDataSet[0][attribute] === 'number' || attribute === 'Date') {
             numericalAttributes.push(attribute);
         } else {
             categoricalAttributes.push(attribute);

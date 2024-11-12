@@ -104,6 +104,20 @@ class ScatterplotD3 {
         // this.yScale.domain([0, maxY]);
         this.yScale.domain([minY, maxY]);
 
+         this.matSvg.append("text")
+        .attr("class", "xAxisLabel")
+        .attr("text-anchor", "end")
+        .attr("x", this.width)
+        .attr("y", this.height - 6)
+        .text(xAttribute);
+
+        this.matSvg.append("text")
+        .attr("class", "yAxisLabel")
+        .attr("text-anchor", "end")
+        .attr("y", 6)
+        .attr("dy", ".75em")
+        .attr("transform", "rotate(-90)")
+        .text(yAttribute);
         
         this.matSvg.select(".xAxisG")
             .transition().duration(this.transitionDuration)
@@ -113,7 +127,22 @@ class ScatterplotD3 {
             .transition().duration(this.transitionDuration)
             .call(d3.axisLeft(this.yScale))
         ;
+
+        this.matSvg.append("text")
+        .attr("class", "x-axis-label")
+        .attr("text-anchor", "middle")
+        .attr("x", (this.width - this.margin.left - this.margin.right) / 2 + this.margin.left)
+        .attr("y", this.height - this.margin.bottom + 150) // Adjust for desired padding
+        .text("X Axis Label");
         
+        this.matSvg.append("text")
+        .attr("class", "y-axis-label")
+        .attr("text-anchor", "middle")
+        .attr("x", -(this.height - this.margin.top - this.margin.bottom) / 2 - this.margin.top)
+        .attr("y", this.margin.left - 120) // Adjust for desired padding
+        .attr("transform", "rotate(-90)")
+        .text("Y Axis Label");
+       
     }
 
 
