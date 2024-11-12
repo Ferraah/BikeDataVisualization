@@ -2,6 +2,8 @@ import './App.css';
 import { useEffect} from 'react';
 import { useDispatch } from 'react-redux';
 import { getSeoulBikeData } from './redux/DataSetSlice';
+import ScatterplotContainer from './components/scatterplot/ScatterPlotContainer';
+import ControlBar from './components/controlbar/ControlBar';
 
 // here import other dependencies
 
@@ -22,7 +24,8 @@ function App() {
     <div className="App">
         {console.log("App rendering")}
         <div id="view-container" className="row">
-          {/*<ScatterplotContainer/>*/}
+          {<ControlBar/>}
+          {<ScatterplotContainer/>}
           {/* <YourVisContainer/> */}
         </div>
     </div>
