@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import Papa from "papaparse"
+import Papa, { parse } from "papaparse"
 
 // get the data in asyncThunk
 export const getSeoulBikeData = createAsyncThunk('seoulBikeData/fetchData', async () => {
@@ -14,9 +14,9 @@ export const getSeoulBikeData = createAsyncThunk('seoulBikeData/fetchData', asyn
 
 const prepareInitialState = (dataSet) => {
 
-    const parsedDataSet = dataSet.map(item => {return {...item, date: new Date(item.Date)}});
+    const parsedDataSet = dataSet.map(item => ({ ...item, Date: new Date(item["Date"].split("/").reverse().join("-")) }));
     //const parsedDataSet = dataSet;
-
+    console.log("parsedDataSet: ", parsedDataSet);
     // Get all attributes
     const availableAttributes = Object.keys(dataSet[0]);
     let numericalAttributes = [];
@@ -24,7 +24,7 @@ const prepareInitialState = (dataSet) => {
 
     availableAttributes.forEach(attribute => { 
         // We also consider date as numerical despite being an object 
-        if (typeof parsedDataSet[0][attribute] === 'number' || attribute === 'Date') {
+        if (typeof parsedDataSet[0][attribute] === 'number' || attribute === "Date") {
             numericalAttributes.push(attribute);
         } else {
             categoricalAttributes.push(attribute);
@@ -35,7 +35,7 @@ const prepareInitialState = (dataSet) => {
     console.log("categoricalAttributes: ", categoricalAttributes);
 
     return {
-        dataSet,
+        dataSet: parsedDataSet,
         numericalAttributes,
         categoricalAttributes,
         xAxisAttribute : numericalAttributes[0],

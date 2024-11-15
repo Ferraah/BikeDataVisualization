@@ -6,9 +6,6 @@ import ScatterplotD3 from './ScatterPlotD3';
 function ScatterplotContainer(){
     const state = useSelector(state => state.state);
     const dispatch = useDispatch();
-    const xAttribute = "Temperature";
-    const yAttribute = "RentedBikeCount";
-
 
     const divContainerRef = useRef(null);
     const scatterplotD3Ref = useRef(null);
@@ -31,7 +28,9 @@ function ScatterplotContainer(){
     useEffect(()=>{
         console.log("ScatterplotContainer useEffect [] called once the component did mount");
         const scatterplotD3 = new ScatterplotD3(divContainerRef.current);
+
         scatterplotD3.create({size:getCharSize()});
+
         scatterplotD3Ref.current = scatterplotD3;
 
         
@@ -53,6 +52,7 @@ function ScatterplotContainer(){
         const scatterplotD3 = scatterplotD3Ref.current;
 
         const handleOnClick = function(cellData){
+            alert(cellData.index);
             //dispatch(updateSelectedItem(cellData));
         }
         const handleOnMouseEnter = function(cellData){
@@ -61,15 +61,21 @@ function ScatterplotContainer(){
         const handleOnMouseLeave = function(){
             //dispatch(updateHoveredCell({}))
         }
+        const handleOnBrushEnd = function(event){
+            const selected_items = scatterplotD3.getBrushSelectedItems(event);
+            alert(selected_items.length)
+            //dispatch(updateBrushedCells(brushSelection))
+        }
 
         const controllerMethods={
             handleOnClick,
             handleOnMouseEnter,
-            handleOnMouseLeave
+            handleOnMouseLeave,
+            handleOnBrushEnd
         }
-        
-        scatterplotD3.renderScatterplot(state.dataSet,state.xAxisAttribute,state.yAxisAttribute,controllerMethods);
-        console.log(state)
+       
+        if(state.dataSet.length>0 && state.xAxisAttribute!==null && state.yAxisAttribute!==null)
+            scatterplotD3.renderScatterplot(state.dataSet,state.xAxisAttribute,state.yAxisAttribute,controllerMethods);
     },[state,dispatch]);// if dependencies, useEffect is called after each data update, in our case only matrixData changes.
 
 

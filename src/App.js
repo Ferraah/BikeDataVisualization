@@ -5,6 +5,7 @@ import { getSeoulBikeData } from './redux/DataSetSlice';
 import ScatterplotContainer from './components/scatterplot/ScatterPlotContainer';
 import ControlBar from './components/controlbar/ControlBar';
 
+
 // here import other dependencies
 
 // a component is a piece of code which render a part of the user interface

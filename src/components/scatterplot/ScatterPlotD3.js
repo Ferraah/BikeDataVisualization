@@ -1,8 +1,10 @@
 import * as d3 from 'd3'
-import { getDefaultFontSize } from '../../utils/helper';
 
+import { getDefaultFontSize } from '../../utils/helper';
+import HammerLogo from "../../assets/hammer.svg"
+import CrossLogo from "../../assets/cross.svg"
 class ScatterplotD3 {
-    margin = {top: 100, right: 10, bottom: 100, left: 100};
+    margin = {top: 50, right: 10, bottom: 150, left: 100};
     size;
     height;
     width;
@@ -13,7 +15,53 @@ class ScatterplotD3 {
     circleRadius = 3;
     xScale;
     yScale;
+    visData;
+    xAttribute;
+    yAttribute;
+    controllerMethods;
 
+    seasonToColorMap = {
+        "Spring":"#FF0000",
+        "Summer":"#00FF00",
+        "Fall":"#0000FF",
+        "Winter":"#FFFF00"
+    };
+
+    createVisualForCategorical = function (enter){
+
+
+        const itemG = enter.append("g")
+                        .attr("class","dotG")
+                        .style("opacity",this.defaultOpacity)
+                        .on("click", (event,itemData)=>{
+                            this.controllerMethods.handleOnClick(itemData);
+                        })
+
+        const holidaySymbol = d3.symbol().type(d3.symbolCross).size(50);
+        const nonHolidaySymbol = d3.symbol().type(d3.symbolCircle).size(50);
+        itemG.append("path")
+        .attr("d", (item) => item["Holiday"] === "Holiday" ? holidaySymbol(): nonHolidaySymbol())
+        .style("visibility", "visible")
+        .attr("fill", (item) => {return this.seasonToColorMap[item.Seasons];})
+        .attr("stroke", (item) => {
+            return item["FunctioningDay"] === "Yes" ? "green" : "red";
+        })
+/*
+        itemG.append("image")
+        .attr("xlink:href", (item, i) =>{
+            return item.FunctioningDay==="Yes" ? HammerLogo : CrossLogo
+        })
+        .attr("alt", "icon")
+        .attr("width", 10)
+        .attr("height", 10)
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("fill", (item) => {return this.seasonToColorMap[item.Season];});
+*/
+
+        return itemG
+
+    }    
 
     constructor(el){
         this.el=el;
@@ -35,17 +83,16 @@ class ScatterplotD3 {
             .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
         ;
 
-        this.xScale = d3.scaleLinear().range([0,this.width]);
-        this.yScale = d3.scaleLinear().range([this.height,0]);
-
         // build xAxisG
         this.matSvg.append("g")
             .attr("class","xAxisG")
-            .attr("transform","translate(0,"+this.height+")")
-        ;
+            .attr("transform","translate(0,"+this.height+")");
+
+
         this.matSvg.append("g")
-            .attr("class","yAxisG")
-        ;
+            .attr("class","yAxisG");
+        
+        
     }
 
     changeBorderAndOpacity(selection){
@@ -95,16 +142,46 @@ class ScatterplotD3 {
     }
 
     updateAxis = function(visData,xAttribute,yAttribute){
-        const minX = d3.min(visData.map(item=>item[xAttribute]));
-        const maxX = d3.max(visData.map(item=>item[xAttribute]));
-        // this.xScale.domain([0, maxX]);
-        this.xScale.domain([minX, maxX]);
-        const minY = d3.min(visData.map(item=>item[yAttribute]));
-        const maxY = d3.max(visData.map(item=>item[yAttribute]));
-        // this.yScale.domain([0, maxY]);
-        this.yScale.domain([minY, maxY]);
 
-         this.matSvg.append("text")
+        // Check if xAttribute and yAttribute are dates by inspecting the first item
+        const isXDate = xAttribute === "Date"
+        const isYDate = yAttribute === "Date"
+
+        // Set the appropriate scale based on the attribute type
+        this.xScale = isXDate ? d3.scaleTime().range([0, this.width]) : d3.scaleLinear().range([0, this.width]);
+        this.yScale = isYDate ? d3.scaleTime().range([this.height, 0]) : d3.scaleLinear().range([this.height, 0]);
+
+
+        // Calculate min and max values for x and y
+        const xExtent = d3.extent(visData, d => d[xAttribute]);
+        const yExtent = d3.extent(visData, d => d[yAttribute]);
+
+        console.log("xExtent: ", xExtent);
+        // Set domain for each scale
+        this.xScale.domain(xExtent);
+        this.yScale.domain(yExtent);
+
+
+        // UPDATE AXIS
+        const bottomAxis = isXDate ? d3.axisBottom(this.xScale).tickFormat(d3.timeFormat("%Y-%m-%d")) : d3.axisBottom(this.xScale);
+        const leftAxis = isYDate ? d3.axisLeft(this.yScale).tickFormat(d3.timeFormat("%Y-%m-%d")) : d3.axisLeft(this.yScale);
+
+        this.matSvg.select(".xAxisG")
+            .transition().duration(this.transitionDuration)
+            .call(bottomAxis)
+        ;
+
+        this.matSvg.select(".yAxisG")
+            .transition().duration(this.transitionDuration)
+            .call(leftAxis)
+        ;
+        // 
+
+        // LABELS
+        this.matSvg.select(".xAxisLabel").remove();
+        this.matSvg.select(".yAxisLabel").remove();
+
+        this.matSvg.append("text")
         .attr("class", "xAxisLabel")
         .attr("text-anchor", "end")
         .attr("x", this.width)
@@ -118,58 +195,35 @@ class ScatterplotD3 {
         .attr("dy", ".75em")
         .attr("transform", "rotate(-90)")
         .text(yAttribute);
-        
-        this.matSvg.select(".xAxisG")
-            .transition().duration(this.transitionDuration)
-            .call(d3.axisBottom(this.xScale))
-        ;
-        this.matSvg.select(".yAxisG")
-            .transition().duration(this.transitionDuration)
-            .call(d3.axisLeft(this.yScale))
-        ;
-
-        this.matSvg.append("text")
-        .attr("class", "x-axis-label")
-        .attr("text-anchor", "middle")
-        .attr("x", (this.width - this.margin.left - this.margin.right) / 2 + this.margin.left)
-        .attr("y", this.height - this.margin.bottom + 150) // Adjust for desired padding
-        .text("X Axis Label");
-        
-        this.matSvg.append("text")
-        .attr("class", "y-axis-label")
-        .attr("text-anchor", "middle")
-        .attr("x", -(this.height - this.margin.top - this.margin.bottom) / 2 - this.margin.top)
-        .attr("y", this.margin.left - 120) // Adjust for desired padding
-        .attr("transform", "rotate(-90)")
-        .text("Y Axis Label");
-       
+        // 
     }
 
 
     renderScatterplot = function (visData, xAttribute, yAttribute, controllerMethods){
+
+        this.visData = visData;
+        this.xAttribute = xAttribute;
+        this.yAttribute = yAttribute;
+        this.controllerMethods = controllerMethods;
+
         // build the size scales and x,y axis
         this.updateAxis(visData,xAttribute,yAttribute);
 
+        this.matSvg.append("image")
+        .attr("xlink:href", HammerLogo)
+        .attr("alt", "hammer logo")
+        .attr("width", 10)
+        .attr("height", 10)
+        .attr("x", 0)
+        .attr("y", 0);
         this.matSvg.selectAll(".dotG")
             // all elements with the class .cellG (empty the first time)
             .data(visData,(itemData)=>itemData.index)
             .join(
                 enter=>{
-                    // all data items to add:
+
                     // doesn’exist in the select but exist in the new array
-                    const itemG=enter.append("g")
-                        .attr("class","dotG")
-                        .style("opacity",this.defaultOpacity)
-                        .on("click", (event,itemData)=>{
-                            controllerMethods.handleOnClick(itemData);
-                        })
-                    ;
-                    // render element as child of each element "g"
-                    itemG.append("circle")
-                        .attr("class","dotCircle")
-                        .attr("r",this.circleRadius)
-                        .attr("stroke","red")
-                    ;
+                    const itemG = this.createVisualForCategorical(enter);
                     this.updateDots(itemG,xAttribute,yAttribute);
                 },
                 update=>{
@@ -181,6 +235,32 @@ class ScatterplotD3 {
                 }
 
             )
+        
+        
+        // Add a brush 
+        this.matSvg.call(
+            d3.brush()
+                .extent([[0, 0], [this.width, this.height]])
+                .on("end", this.controllerMethods.handleOnBrushEnd)
+        )
+    }
+
+    // Get the items objects selected by the brush
+    getBrushSelectedItems = function (event){
+
+        // If no area selected return empty list
+        if(event.selection===null)
+            return [];
+
+        const extent = event.selection;
+        const filtered_items = this.matSvg.selectAll(".dotG")
+             .filter((item)=>{
+                 const xPos = this.xScale(item[this.xAttribute]);
+                 const yPos = this.yScale(item[this.yAttribute]);
+                 return extent[0][0] <= xPos && xPos <= extent[1][0] && extent[0][1] <= yPos && yPos <= extent[1][1];
+             })
+             .data();
+        return filtered_items; 
     }
 
     clear = function(){

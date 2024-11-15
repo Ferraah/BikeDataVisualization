@@ -25,14 +25,14 @@ export default function ControlBar(){
         <div>
             <button onClick={()=> console.log(state)}></button>
             <form method="post" onSubmit={handleSubmit}>
-                <select name="selectXAxis">
+                <select name="selectYAxis">
                     {
                         state.numericalAttributes.map((item,i)=>{
                             return <option key={i} value={item}>{item}</option>
                         })
                     }
                 </select>
-                <select name="selectYAxis">
+                <select name="selectXAxis">
                     {
                         state.numericalAttributes.map((item,i)=>{
                             return <option key={i} value={item}>{item}</option>
