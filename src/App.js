@@ -3,6 +3,7 @@ import { useEffect} from 'react';
 import { useDispatch } from 'react-redux';
 import { getSeoulBikeData } from './redux/DataSetSlice';
 import ScatterplotContainer from './components/scatterplot/ScatterPlotContainer';
+import HexbinContainer from './components/hexbin/HexbinContainer';
 import ControlBar from './components/controlbar/ControlBar';
 
 
@@ -26,8 +27,12 @@ function App() {
         {console.log("App rendering")}
         <div id="view-container" className="row">
           {<ControlBar/>}
-          {<ScatterplotContainer/>}
-          {/* <YourVisContainer/> */}
+          <div className="col2">
+            {<ScatterplotContainer/>}
+          </div>
+          <div className="col2">
+            { <HexbinContainer/> }
+          </div>
         </div>
     </div>
   );
