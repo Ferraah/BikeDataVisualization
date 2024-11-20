@@ -1,7 +1,7 @@
 import * as d3 from 'd3'
 import * as d3Hexbin from 'd3-hexbin'
-import { getDefaultFontSize } from '../../utils/helper';
-import HammerLogo from "../../assets/hammer.svg"
+//import { getDefaultFontSize } from '../../utils/helper';
+//import HammerLogo from "../../assets/hammer.svg"
 
 class HexbinD3 {
     margin = {top: 50, right: 10, bottom: 150, left: 100};
@@ -13,7 +13,7 @@ class HexbinD3 {
     // add specific class properties used for the vis render/updates
     defaultOpacity=0.3;
     transitionDuration=1000;
-    binRadius = 12;
+    binRadius = 10;
     visData;
     xAttribute;
     yAttribute;
@@ -23,18 +23,12 @@ class HexbinD3 {
     hexbin;
 
     indexToPointMap;
+    pointToIndicesMap;
     pointToBinMap;
     binToPointsMap;
     
 
-    seasonToColorMap = {
-        "Spring":"#FF0000",
-        "Summer":"#00FF00",
-        "Fall":"#0000FF",
-        "Winter":"#FFFF00"
-    };
-
-    
+     
     constructor(el){
         this.el=el;
     };
@@ -42,6 +36,9 @@ class HexbinD3 {
 
     binIsSelected = function(bin, selectedIndices){
         
+        if(!selectedIndices.length)
+            return false;
+
         // Unoptimized
         const selectedPoints = selectedIndices.map(i => this.indexToPointMap.get(i));
         // For every point of the bin, check if at least one is selected. 
@@ -228,7 +225,11 @@ class HexbinD3 {
         // Create the color scale.
         const color = d3.scaleSequential(d3.interpolateBuPu)
           .domain([0, d3.max(bins, d => d.length) / 2]);
-        
+          // Create the radius scale.
+        const r = d3.scaleSqrt()
+        .domain([0, d3.max(bins, d => d.length) / 2])
+        .range([0, this.hexbin.radius() * Math.SQRT2]);
+
         //console.log("Selected: ", this.binIsSelected(bins[100], selectedItemsIndices))
 
         this.hexbinSvg.selectAll(".binG")
@@ -241,11 +242,8 @@ class HexbinD3 {
 
                 itemG.append("path")
                 .attr("class", "hexagon")
-                .attr("d", this.hexbin.hexagon())
                 .attr("fill", bin => color(bin.length))
-                //.attr("stroke", bin => this.binIsSelected(bin, selectedItemsIndices) ? "red" : "black")
-                //.attr("stroke", "black")
-                //.attr("stroke-width",   "0.5")
+                .attr("d", d => this.hexbin.hexagon(r(d.length)))
                 this.updateBinsElements(itemG, selectedItemsIndices)
             },
             update => {

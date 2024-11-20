@@ -33,10 +33,6 @@ function HexbinContainer(){
 
         hexbinRef.current = hexbin;
 
-        
-        console.log(state)
-
-
         return ()=>{
             // did unmout, the return function is called once the component did unmount (removed for the screen)
             console.log("ScatterplotContainer useEffect [] return function, called when the component did unmount...");
@@ -50,7 +46,6 @@ function HexbinContainer(){
     useEffect(()=>{
         console.log("ScatterplotContainer useEffect with dependency [state, dispatch], called each time matrixData changes...");
         const hexbin = hexbinRef.current;
-
         const handleOnClick = function(cellData){
             alert(cellData.index);
             //dispatch(updateSelectedItem(cellData));
@@ -62,8 +57,7 @@ function HexbinContainer(){
             //dispatch(updateHoveredCell({}))
         }
         const handleOnBrushEnd = function(event){
-            const selected_items = hexbin.getBrushSelectedItems(event);
-            alert(selected_items.length)
+            //const selected_items = hexbin.getBrushSelectedItems(event);
             //dispatch(updateBrushedCells(brushSelection))
         }
 
@@ -74,8 +68,7 @@ function HexbinContainer(){
             handleOnBrushEnd
         }
        
-        if(state.dataSet && state.selectedItemsIndices && state.xAxisAttribute!==null && state.yAxisAttribute!==null)
-            hexbin.renderPlot(state.dataSet, state.selectedItemsIndices, state.xAxisAttribute,state.yAxisAttribute,controllerMethods);
+        hexbin.renderPlot(state.dataSet, state.selectedItemsIndices, state.xAxisAttribute_2,state.yAxisAttribute_2,controllerMethods);
     },[state,dispatch]);// if dependencies, useEffect is called after each data update, in our case only matrixData changes.
 
 

@@ -6,7 +6,7 @@ export default function ControlBar(){
     const state = useSelector(state => state.state);
     const dispatcher = useDispatch();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e, i) => {
         // Prevent the browser from reloading the page
         e.preventDefault();
         // Read the form data
@@ -17,14 +17,15 @@ export default function ControlBar(){
         console.log(formJson);
         dispatcher(updateAxisAttributes({
             xAxisAttribute: formJson.selectXAxis,
-            yAxisAttribute: formJson.selectYAxis
+            yAxisAttribute: formJson.selectYAxis,
+            plotIndex: i
         }));
     }
 
     return (
+        <>
         <div>
-            <button onClick={()=> console.log(state)}></button>
-            <form method="post" onSubmit={handleSubmit}>
+            <form method="post" onSubmit={(e) => handleSubmit(e,0)}>
                 <select name="selectYAxis">
                     {
                         state.numericalAttributes.map((item,i)=>{
@@ -42,5 +43,25 @@ export default function ControlBar(){
                 <button type="submit">Submit</button>
             </form>
         </div>
+        <div>
+            <form method="post" onSubmit={(e) => handleSubmit(e,1)}>
+                <select name="selectYAxis">
+                    {
+                        state.numericalAttributes.map((item,i)=>{
+                            return <option key={i} value={item}>{item}</option>
+                        })
+                    }
+                </select>
+                <select name="selectXAxis">
+                    {
+                        state.numericalAttributes.map((item,i)=>{
+                            return <option key={i} value={item}>{item}</option>
+                        })
+                    }
+                </select>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+        </>
     )
 }

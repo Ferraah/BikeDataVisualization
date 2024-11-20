@@ -1,8 +1,9 @@
 import * as d3 from 'd3'
 
-import { getDefaultFontSize } from '../../utils/helper';
-import HammerLogo from "../../assets/hammer.svg"
-import CrossLogo from "../../assets/cross.svg"
+//import { getDefaultFontSize } from '../../utils/helper';
+//import HammerLogo from "../../assets/hammer.svg"
+//import CrossLogo from "../../assets/cross.svg"
+
 class ScatterplotD3 {
     margin = {top: 50, right: 10, bottom: 150, left: 100};
     size;
@@ -10,7 +11,7 @@ class ScatterplotD3 {
     width;
     matSvg;
     // add specific class properties used for the vis render/updates
-    defaultOpacity=0.3;
+    defaultOpacity=0.8;
     transitionDuration=1000;
     circleRadius = 3;
     xScale;
@@ -21,10 +22,10 @@ class ScatterplotD3 {
     controllerMethods;
 
     seasonToColorMap = {
-        "Spring":"#FF0000",
-        "Summer":"#00FF00",
-        "Fall":"#0000FF",
-        "Winter":"#FFFF00"
+        "Spring":"rgb(240, 249, 33)",
+        "Summer":"rgb(237, 121, 83)",
+        "Autumn":"rgb(156, 23, 158)",
+        "Winter":"rgb(13, 8, 135)"
     };
 
     /**
@@ -37,22 +38,15 @@ class ScatterplotD3 {
         const holidaySymbol = d3.symbol().type(d3.symbolCross).size(50);
         const nonHolidaySymbol = d3.symbol().type(d3.symbolCircle).size(50);
 
-        const itemG = enter.append("g");
+        const itemG = enter.append("g").attr("class","dotG");
 
-        itemG.attr("class","dotG")
-        .style("opacity",this.defaultOpacity)
+        itemG.style("opacity",this.defaultOpacity)
+        .style("visibility", "visible")
+        .append("path")
+        .attr("d", (item) => item["Holiday"] === "Holiday" ? holidaySymbol(): nonHolidaySymbol())
         .on("click", (event,itemData)=>{
             this.controllerMethods.handleOnClick(itemData);
         })
-        .append("path")
-        .attr("d", (item) => item["Holiday"] === "Holiday" ? holidaySymbol(): nonHolidaySymbol())
-        //.attr("d", (item) => item["Holiday"] === "Holiday" ? CrossLogo: HammerLogo)
-        .style("visibility", "visible")
-        .attr("fill", (item) => {return this.seasonToColorMap[item.Seasons];})
-        .attr("stroke", (item) => {
-            return item["FunctioningDay"] === "Yes" ? "green" : "red";
-        })
-
         return itemG
 
     }    
@@ -92,29 +86,26 @@ class ScatterplotD3 {
                
     }
 
-    changeBorderAndOpacity(selection){
-        selection.style("opacity", (item)=>{
-            return item.selected?1:this.defaultOpacity;
-        })
-        ;
-
-        selection.select(".dotCircle")
-            .attr("stroke-width",(item)=>{
-                return item.selected?2:0;
-            })
-        ;
-    }
 
     /**
      * Update the position of dots in the scatterplot also with a transition 
      * @param {*} selection  The selection of the dots
+     * @param {*} selectedItemsIndices 
      * @param {*} xAttribute 
      * @param {*} yAttribute 
      */
-    updateDots(selection,xAttribute,yAttribute){
+    updateDotsPositionAndColor(selection, selectedItemsIndices, xAttribute,yAttribute){
         
         // For every element in the selection, update the position of the dot
         selection
+            .attr("fill", (item) => selectedItemsIndices.includes(item.index) || selectedItemsIndices.length === 0 ? this.seasonToColorMap[item.Seasons] : "gray" )
+            .attr("stroke", (item) => {
+                if(selectedItemsIndices.length === 0 || selectedItemsIndices.includes(item.index))
+                    return item["FunctioningDay"] === "Yes" ? "green" : "red"
+                else
+                    return "gray"
+
+            })
             .transition().duration(this.transitionDuration)
             .attr("transform", (item)=>{
 
@@ -125,23 +116,11 @@ class ScatterplotD3 {
                 console.assert(yPos!==undefined,"yPos is undefined at "+item.index);
                 return "translate("+xPos+","+yPos+")";
             })
+
+        //alert()
          
-        this.changeBorderAndOpacity(selection)
     }
 
-    highlightSelectedItems(selectedItems){
-        // this.changeBorderAndOpacity(updateSelection);
-        this.matSvg.selectAll(".dotG")
-            .data(selectedItems,(itemData)=>itemData.index)
-            .join(
-                enter=>enter,
-                update=>{
-                    this.changeBorderAndOpacity(update);
-                },
-                exit => exit
-            )
-        ;
-    }
 
     updateAxis = function(visData,xAttribute,yAttribute){
 
@@ -158,7 +137,6 @@ class ScatterplotD3 {
         const xExtent = d3.extent(visData, d => d[xAttribute]);
         const yExtent = d3.extent(visData, d => d[yAttribute]);
 
-        console.log("xExtent: ", xExtent);
         // Set domain for each scale
         this.xScale.domain(xExtent);
         this.yScale.domain(yExtent);
@@ -207,7 +185,7 @@ class ScatterplotD3 {
      * @param {*} yAttribute 
      * @param {*} controllerMethods 
      */
-    renderScatterplot = function (visData, xAttribute, yAttribute, controllerMethods){
+    renderScatterplot = function (visData, selectedItemsIndices, xAttribute, yAttribute, controllerMethods){
 
         
         this.visData = visData;
@@ -226,11 +204,11 @@ class ScatterplotD3 {
                 // When data does not exist yet
                 enter=>{
                     const itemG = this.createVisualForCategorical(enter);
-                    this.updateDots(itemG,xAttribute,yAttribute);
+                    this.updateDotsPositionAndColor(itemG, selectedItemsIndices, xAttribute,yAttribute);
                 },
                 // When data already exists
                 update=>{
-                    this.updateDots(update,xAttribute,yAttribute)
+                    this.updateDotsPositionAndColor(update, selectedItemsIndices, xAttribute,yAttribute)
                 },
                 // When data is removed
                 exit =>{
@@ -244,9 +222,14 @@ class ScatterplotD3 {
                 .extent([[0, 0], [this.width, this.height]])
                 .on("end", this.controllerMethods.handleOnBrushEnd)
         )
+
     }
 
-    // Get the items objects selected by the brush
+    /**
+     * Get the selected items in the brush 
+     * @param {*} event Event triggered by the ending of brush
+     * @returns A list of indices of the selected items
+     */
     getBrushSelectedItems = function (event){
 
         // If no area selected return empty list
@@ -254,14 +237,18 @@ class ScatterplotD3 {
             return [];
 
         const extent = event.selection;
-        const filtered_items = this.matSvg.selectAll(".dotG")
-             .filter((item)=>{
-                 const xPos = this.xScale(item[this.xAttribute]);
-                 const yPos = this.yScale(item[this.yAttribute]);
-                 return extent[0][0] <= xPos && xPos <= extent[1][0] && extent[0][1] <= yPos && yPos <= extent[1][1];
-             })
-             .data().map(i => i.index);
-        return filtered_items; 
+
+        // Select all dots and filter the ones inside the extent
+        const filteredIndices = this.matSvg.selectAll(".dotG")
+            .filter((item)=>{
+                const xPos = this.xScale(item[this.xAttribute]);
+                const yPos = this.yScale(item[this.yAttribute]);
+                return extent[0][0] <= xPos && xPos <= extent[1][0] && extent[0][1] <= yPos && yPos <= extent[1][1];
+            })
+            // Get the data and return the index
+            .data().map(i => i.index);
+
+        return filteredIndices; 
     }
 
     clear = function(){

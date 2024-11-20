@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import Papa, { parse } from "papaparse"
+import Papa from "papaparse"
 
 // get the data in asyncThunk
 export const getSeoulBikeData = createAsyncThunk('seoulBikeData/fetchData', async () => {
@@ -7,9 +7,9 @@ export const getSeoulBikeData = createAsyncThunk('seoulBikeData/fetchData', asyn
     const responseText = await response.text();
     console.log("loaded file length:" + responseText.length);
     const responseJson = Papa.parse(responseText,{header:true, dynamicTyping:true});
-    return responseJson.data.map((item,i)=>{return {...item,index:i}}).slice(0, -7000); // 
-    //return responseJson.data.map((item,i)=>{return {...item,index:i}});
-    //return responseJson.data.map((item,i)=>{return {...item,index:i}});
+    //return responseJson.data.map((item,i)=>{return {...item,index:i}}).slice(0, -7000); // 
+    //return responseJson.data.map((item,i)=>{return {...item,index:i}}).slice(0, 10); // 
+    return responseJson.data.map((item,i)=>{return {...item,index:i}});
     // when a result is returned, extraReducer below is triggered with the case setSeoulBikeData.fulfilled
 })
 
@@ -34,12 +34,14 @@ const prepareInitialState = (data) => {
 
     return {
         dataSet: parsedData,
-        selectedItemsIndices: [1], // Empty in the beginning
+        selectedItemsIndices: [], // Empty in the beginning
         selectedBinsIndices: [],
         numericalAttributes,
         categoricalAttributes,
-        xAxisAttribute : numericalAttributes[0],
-        yAxisAttribute : numericalAttributes[1]
+        xAxisAttribute_1 : numericalAttributes[0],
+        yAxisAttribute_1 : numericalAttributes[1],
+        xAxisAttribute_2 : numericalAttributes[0],
+        yAxisAttribute_2 : numericalAttributes[1]
     }
 }
 
@@ -49,19 +51,27 @@ export const stateSlice = createSlice({
     dataSet: [],
     numericalAttributes : [],
     categoricalAttributes : [],
-    xAxisAttribute : null,
-    yAxisAttribute : null,
+    xAxisAttribute_1 : null,
+    yAxisAttribute_1 : null,
+    xAxisAttribute_2 : null,
+    yAxisAttribute_2 : null,
     selectedItemsIndices: [],
     selectedBinsIndices: []
   },
   reducers: {
     updateAxisAttributes: (state, action) => {
-      return {...state, 
-          xAxisAttribute: action.payload.xAxisAttribute, 
-          yAxisAttribute: action.payload.yAxisAttribute
-        }
+      if(action.payload.plotIndex === 0)
+        return {...state, 
+            xAxisAttribute_1: action.payload.xAxisAttribute, 
+            yAxisAttribute_1: action.payload.yAxisAttribute
+          }
+      else
+        return {...state, 
+            xAxisAttribute_2: action.payload.xAxisAttribute, 
+            yAxisAttribute_2: action.payload.yAxisAttribute
+          }
     },
-    updateSelectedItem: (state, action) => {
+    updateScatterplotSelectedItem: (state, action) => {
       return {...state, selectedItemsIndices: action.payload}
     }
   },
@@ -74,6 +84,6 @@ export const stateSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const {  updateAxisAttributes, updateSelectedItem} = stateSlice.actions
+export const {  updateAxisAttributes, updateScatterplotSelectedItem} = stateSlice.actions
 
 export default stateSlice.reducer
