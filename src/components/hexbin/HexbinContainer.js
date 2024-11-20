@@ -74,8 +74,8 @@ function HexbinContainer(){
             handleOnBrushEnd
         }
        
-        if(state.dataSet.length>0 && state.xAxisAttribute!==null && state.yAxisAttribute!==null)
-            hexbin.renderScatterplot(state.dataSet,state.xAxisAttribute,state.yAxisAttribute,controllerMethods);
+        if(state.dataSet && state.selectedItemsIndices && state.xAxisAttribute!==null && state.yAxisAttribute!==null)
+            hexbin.renderPlot(state.dataSet, state.selectedItemsIndices, state.xAxisAttribute,state.yAxisAttribute,controllerMethods);
     },[state,dispatch]);// if dependencies, useEffect is called after each data update, in our case only matrixData changes.
 
 

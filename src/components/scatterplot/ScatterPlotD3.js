@@ -27,37 +27,31 @@ class ScatterplotD3 {
         "Winter":"#FFFF00"
     };
 
+    /**
+     * For new elements, create the visual representation of the dot and append it to the enter selection
+     * @param {*} enter 
+     * @returns The items group of the new elements, already appended to the enter selection 
+     */
     createVisualForCategorical = function (enter){
-
-
-        const itemG = enter.append("g")
-                        .attr("class","dotG")
-                        .style("opacity",this.defaultOpacity)
-                        .on("click", (event,itemData)=>{
-                            this.controllerMethods.handleOnClick(itemData);
-                        })
 
         const holidaySymbol = d3.symbol().type(d3.symbolCross).size(50);
         const nonHolidaySymbol = d3.symbol().type(d3.symbolCircle).size(50);
-        itemG.append("path")
+
+        const itemG = enter.append("g");
+
+        itemG.attr("class","dotG")
+        .style("opacity",this.defaultOpacity)
+        .on("click", (event,itemData)=>{
+            this.controllerMethods.handleOnClick(itemData);
+        })
+        .append("path")
         .attr("d", (item) => item["Holiday"] === "Holiday" ? holidaySymbol(): nonHolidaySymbol())
+        //.attr("d", (item) => item["Holiday"] === "Holiday" ? CrossLogo: HammerLogo)
         .style("visibility", "visible")
         .attr("fill", (item) => {return this.seasonToColorMap[item.Seasons];})
         .attr("stroke", (item) => {
             return item["FunctioningDay"] === "Yes" ? "green" : "red";
         })
-/*
-        itemG.append("image")
-        .attr("xlink:href", (item, i) =>{
-            return item.FunctioningDay==="Yes" ? HammerLogo : CrossLogo
-        })
-        .attr("alt", "icon")
-        .attr("width", 10)
-        .attr("height", 10)
-        .attr("x", 0)
-        .attr("y", 0)
-        .attr("fill", (item) => {return this.seasonToColorMap[item.Season];});
-*/
 
         return itemG
 
@@ -67,6 +61,10 @@ class ScatterplotD3 {
         this.el=el;
     };
 
+    /**
+     * Create the scatterplot view and axis
+     * @param {*} config Configuration object with size of the scatterplot view 
+     */
     create = function (config) {
         this.size = {width: config.size.width, height: config.size.height};
 
@@ -79,20 +77,19 @@ class ScatterplotD3 {
             .attr("width", this.width + this.margin.left + this.margin.right)
             .attr("height", this.height + this.margin.top + this.margin.bottom)
             .append("g")
-            .attr("class","matSvgG")
+            .attr("class","scatterplotSvgG")
             .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
         ;
 
-        // build xAxisG
+        // Build the axis
         this.matSvg.append("g")
             .attr("class","xAxisG")
             .attr("transform","translate(0,"+this.height+")");
 
-
         this.matSvg.append("g")
             .attr("class","yAxisG");
         
-        
+               
     }
 
     changeBorderAndOpacity(selection){
@@ -108,9 +105,15 @@ class ScatterplotD3 {
         ;
     }
 
+    /**
+     * Update the position of dots in the scatterplot also with a transition 
+     * @param {*} selection  The selection of the dots
+     * @param {*} xAttribute 
+     * @param {*} yAttribute 
+     */
     updateDots(selection,xAttribute,yAttribute){
-        // transform selection
         
+        // For every element in the selection, update the position of the dot
         selection
             .transition().duration(this.transitionDuration)
             .attr("transform", (item)=>{
@@ -122,14 +125,13 @@ class ScatterplotD3 {
                 console.assert(yPos!==undefined,"yPos is undefined at "+item.index);
                 return "translate("+xPos+","+yPos+")";
             })
-                
+         
         this.changeBorderAndOpacity(selection)
     }
 
     highlightSelectedItems(selectedItems){
         // this.changeBorderAndOpacity(updateSelection);
         this.matSvg.selectAll(".dotG")
-            // all elements with the class .cellG (empty the first time)
             .data(selectedItems,(itemData)=>itemData.index)
             .join(
                 enter=>enter,
@@ -198,45 +200,44 @@ class ScatterplotD3 {
         // 
     }
 
-
+    /**
+     * Render the points of the scatterplot, also updating the axis accordingly
+     * @param {*} visData 
+     * @param {*} xAttribute 
+     * @param {*} yAttribute 
+     * @param {*} controllerMethods 
+     */
     renderScatterplot = function (visData, xAttribute, yAttribute, controllerMethods){
 
+        
         this.visData = visData;
         this.xAttribute = xAttribute;
         this.yAttribute = yAttribute;
         this.controllerMethods = controllerMethods;
 
-        // build the size scales and x,y axis
+        // Reset the Axis with the current data
         this.updateAxis(visData,xAttribute,yAttribute);
 
-        this.matSvg.append("image")
-        .attr("xlink:href", HammerLogo)
-        .attr("alt", "hammer logo")
-        .attr("width", 10)
-        .attr("height", 10)
-        .attr("x", 0)
-        .attr("y", 0);
+        // Bind the data to the dots
         this.matSvg.selectAll(".dotG")
             // all elements with the class .cellG (empty the first time)
             .data(visData,(itemData)=>itemData.index)
             .join(
+                // When data does not exist yet
                 enter=>{
-
-                    // doesn’exist in the select but exist in the new array
                     const itemG = this.createVisualForCategorical(enter);
                     this.updateDots(itemG,xAttribute,yAttribute);
                 },
+                // When data already exists
                 update=>{
                     this.updateDots(update,xAttribute,yAttribute)
                 },
+                // When data is removed
                 exit =>{
-                    exit.remove()
-                    ;
+                    exit.remove();
                 }
-
             )
-        
-        
+
         // Add a brush 
         this.matSvg.call(
             d3.brush()
@@ -259,7 +260,7 @@ class ScatterplotD3 {
                  const yPos = this.yScale(item[this.yAttribute]);
                  return extent[0][0] <= xPos && xPos <= extent[1][0] && extent[0][1] <= yPos && yPos <= extent[1][1];
              })
-             .data();
+             .data().map(i => i.index);
         return filtered_items; 
     }
 

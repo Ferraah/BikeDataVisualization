@@ -7,35 +7,35 @@ export const getSeoulBikeData = createAsyncThunk('seoulBikeData/fetchData', asyn
     const responseText = await response.text();
     console.log("loaded file length:" + responseText.length);
     const responseJson = Papa.parse(responseText,{header:true, dynamicTyping:true});
-    //return responseJson.data.map((item,i)=>{return {...item,index:i}}).slice(0, -1); // 
-    return responseJson.data.map((item,i)=>{return {...item,index:i}});
+    return responseJson.data.map((item,i)=>{return {...item,index:i}}).slice(0, -7000); // 
+    //return responseJson.data.map((item,i)=>{return {...item,index:i}});
+    //return responseJson.data.map((item,i)=>{return {...item,index:i}});
     // when a result is returned, extraReducer below is triggered with the case setSeoulBikeData.fulfilled
 })
 
-const prepareInitialState = (dataSet) => {
+const prepareInitialState = (data) => {
 
-    const parsedDataSet = dataSet.map(item => ({ ...item, Date: new Date(item["Date"].split("/").reverse().join("-")) }));
-    //const parsedDataSet = dataSet;
-    console.log("parsedDataSet: ", parsedDataSet);
+    // Parse string to dates from the original data
+    const parsedData = data.map(item => ({ ...item, Date: new Date(item["Date"].split("/").reverse().join("-")) }));
+
     // Get all attributes
-    const availableAttributes = Object.keys(dataSet[0]);
+    const availableAttributes = Object.keys(parsedData[0]);
     let numericalAttributes = [];
     let categoricalAttributes = [];
 
     availableAttributes.forEach(attribute => { 
         // We also consider date as numerical despite being an object 
-        if (typeof parsedDataSet[0][attribute] === 'number' || attribute === "Date") {
+        if (typeof parsedData[0][attribute] === 'number' || attribute === "Date") {
             numericalAttributes.push(attribute);
         } else {
             categoricalAttributes.push(attribute);
         }
     })
 
-    console.log("numericalAttributes: ", numericalAttributes);
-    console.log("categoricalAttributes: ", categoricalAttributes);
-
     return {
-        dataSet: parsedDataSet,
+        dataSet: parsedData,
+        selectedItemsIndices: [1], // Empty in the beginning
+        selectedBinsIndices: [],
         numericalAttributes,
         categoricalAttributes,
         xAxisAttribute : numericalAttributes[0],
@@ -50,7 +50,9 @@ export const stateSlice = createSlice({
     numericalAttributes : [],
     categoricalAttributes : [],
     xAxisAttribute : null,
-    yAxisAttribute : null
+    yAxisAttribute : null,
+    selectedItemsIndices: [],
+    selectedBinsIndices: []
   },
   reducers: {
     updateAxisAttributes: (state, action) => {
@@ -58,6 +60,9 @@ export const stateSlice = createSlice({
           xAxisAttribute: action.payload.xAxisAttribute, 
           yAxisAttribute: action.payload.yAxisAttribute
         }
+    },
+    updateSelectedItem: (state, action) => {
+      return {...state, selectedItemsIndices: action.payload}
     }
   },
   extraReducers: builder => {
@@ -69,6 +74,6 @@ export const stateSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { updateSelectedItem, updateAxisAttributes } = stateSlice.actions
+export const {  updateAxisAttributes, updateSelectedItem} = stateSlice.actions
 
 export default stateSlice.reducer

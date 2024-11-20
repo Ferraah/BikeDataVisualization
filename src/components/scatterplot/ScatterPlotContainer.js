@@ -2,6 +2,7 @@ import {useEffect, useRef} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import "./Scatterplot.css"
 import ScatterplotD3 from './ScatterPlotD3';
+import { updateSelectedItem } from '../../redux/DataSetSlice';
 
 function ScatterplotContainer(){
     const state = useSelector(state => state.state);
@@ -62,8 +63,8 @@ function ScatterplotContainer(){
             //dispatch(updateHoveredCell({}))
         }
         const handleOnBrushEnd = function(event){
-            const selected_items = scatterplotD3.getBrushSelectedItems(event);
-            alert(selected_items.length)
+            const selectedItemsIndices = scatterplotD3.getBrushSelectedItems(event);
+            dispatch(updateSelectedItem(selectedItemsIndices));
             //dispatch(updateBrushedCells(brushSelection))
         }
 
