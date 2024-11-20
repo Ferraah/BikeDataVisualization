@@ -2,6 +2,7 @@ import {useEffect, useRef} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import HexbinD3 from './HexbinD3';
 import "./Hexbin.css"
+import { updateSelectedItemsIndices } from '../../redux/DataSetSlice';
 
 function HexbinContainer(){
     const state = useSelector(state => state.state);
@@ -57,8 +58,11 @@ function HexbinContainer(){
             //dispatch(updateHoveredCell({}))
         }
         const handleOnBrushEnd = function(event){
-            //const selected_items = hexbin.getBrushSelectedItems(event);
-            //dispatch(updateBrushedCells(brushSelection))
+
+            const selectedBins = hexbin.getBrushSelectedBins(event);
+            const selectedItemsIndices = hexbin.getBrushSelectedItems(selectedBins)
+            
+            dispatch(updateSelectedItemsIndices(selectedItemsIndices))
         }
 
         const controllerMethods={

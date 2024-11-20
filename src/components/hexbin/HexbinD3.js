@@ -1,5 +1,6 @@
 import * as d3 from 'd3'
 import * as d3Hexbin from 'd3-hexbin'
+import lodash from 'lodash'
 //import { getDefaultFontSize } from '../../utils/helper';
 //import HammerLogo from "../../assets/hammer.svg"
 
@@ -34,23 +35,7 @@ class HexbinD3 {
     };
 
 
-    binIsSelected = function(bin, selectedIndices){
-        
-        if(!selectedIndices.length)
-            return false;
-
-        // Unoptimized
-        const selectedPoints = selectedIndices.map(i => this.indexToPointMap.get(i));
-        // For every point of the bin, check if at least one is selected. 
-        // Then the bin count has selected
-        for(let i=0; i<bin.length; i++){
-            if(selectedPoints.includes(bin[i])){
-                return true;
-            }
-        }
-
-        return false;
-    }
+    
 
     createPointToBinMap = function(bins){
         const pointToBinMap = new Map();
@@ -218,6 +203,17 @@ class HexbinD3 {
         const result = this.prepareHexbinDataObjects(visData, xAttribute, yAttribute);
         const bins = result.bins;
         this.indexToPointMap = result.indexToPointMap; 
+        this.pointToIndicesMap = new Map();
+
+        result.indexToPointMap.forEach((point, index) => {
+            if (!this.pointToIndicesMap.has(point)) {
+                this.pointToIndicesMap.set(point, []);
+            }
+            this.pointToIndicesMap.get(point).push(index);
+        });
+
+        
+        console.log(this.pointToIndicesMap)
 
         //this.pointToBinMap = this.createPointToBinMap(bins);
         //this.binToPointsMap = new Map(Array.from(this.pointToBinMap, a => a.reverse())); // Because it's bijective
@@ -262,7 +258,7 @@ class HexbinD3 {
         this.hexbinSvg.call(
             d3.brush()
                 .extent([[0, 0], [this.width, this.height]])
-                .on("end", this.controllerMethods.handleOnBrushEnd)
+                .on("end", controllerMethods.handleOnBrushEnd)
         )
     }
 
@@ -272,22 +268,65 @@ class HexbinD3 {
             .attr("stroke-width", bin => this.binIsSelected(bin, selectedItemsIndices) ? "2" : "0.5")
     }
 
-    // Get the items objects selected by the brush
-    getBrushSelectedItems = function (event){
+    binIsSelected = function(bin, selectedItemsIndices){
+        
+        if(!selectedItemsIndices.length)
+            return false;
+
+        // Unoptimized
+        const selectedPoints = selectedItemsIndices.map(i => this.indexToPointMap.get(i));
+        // For every point of the bin, check if at least one is selected. 
+        // Then the bin count has selected
+        for(let i=0; i<bin.length; i++){
+            if(selectedPoints.includes(bin[i])){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get the selected hexagons objects from the brush event
+     * @param {*} event Event triggered by the ending of brush
+     * @returns List of hexagon objects
+     */
+    getBrushSelectedBins = function (event){
 
         // If no area selected return empty list
         if(event.selection===null)
             return [];
 
         const extent = event.selection;
-        const filtered_items = this.hexbinSvg.selectAll(".dotG")
-             .filter((item)=>{
-                 const xPos = this.xScale(item[this.xAttribute]);
-                 const yPos = this.yScale(item[this.yAttribute]);
-                 return extent[0][0] <= xPos && xPos <= extent[1][0] && extent[0][1] <= yPos && yPos <= extent[1][1];
-             })
-             .data();
-        return filtered_items; 
+
+        // Select all dots and filter the ones inside the extent
+        const filteredIndices = this.hexbinSvg.selectAll(".binG")
+            .filter((i)=>{
+                // Centers of the hexagons
+                const xPos = i.x;
+                const yPos = i.y;
+                return extent[0][0] <= xPos && xPos <= extent[1][0] && extent[0][1] <= yPos && yPos <= extent[1][1];
+            })
+            // Get the data and return the index
+            .data();
+        
+        return filteredIndices; 
+    }
+
+    getBrushSelectedItems = function (bins){
+        const selectedItemsIndices = [];
+
+        bins.forEach(bin => {
+            let indicesArrays = [];
+            bin.forEach(point => {
+                const point_indices = this.pointToIndicesMap.get(point);
+                indicesArrays.push(point_indices);
+            })
+            // Merge arrays. No duplicates are possible because indices are unique
+            selectedItemsIndices.push(...lodash.flatten(indicesArrays));
+        }) 
+
+        return selectedItemsIndices;
     }
 
     clear = function(){

@@ -8,8 +8,8 @@ export const getSeoulBikeData = createAsyncThunk('seoulBikeData/fetchData', asyn
     console.log("loaded file length:" + responseText.length);
     const responseJson = Papa.parse(responseText,{header:true, dynamicTyping:true});
     //return responseJson.data.map((item,i)=>{return {...item,index:i}}).slice(0, -7000); // 
-    //return responseJson.data.map((item,i)=>{return {...item,index:i}}).slice(0, 10); // 
-    return responseJson.data.map((item,i)=>{return {...item,index:i}});
+    return responseJson.data.map((item,i)=>{return {...item,index:i}}).slice(0, 10); // 
+    //return responseJson.data.map((item,i)=>{return {...item,index:i}});
     // when a result is returned, extraReducer below is triggered with the case setSeoulBikeData.fulfilled
 })
 
@@ -35,7 +35,7 @@ const prepareInitialState = (data) => {
     return {
         dataSet: parsedData,
         selectedItemsIndices: [], // Empty in the beginning
-        selectedBinsIndices: [],
+        //selectedBins: [],
         numericalAttributes,
         categoricalAttributes,
         xAxisAttribute_1 : numericalAttributes[0],
@@ -56,7 +56,7 @@ export const stateSlice = createSlice({
     xAxisAttribute_2 : null,
     yAxisAttribute_2 : null,
     selectedItemsIndices: [],
-    selectedBinsIndices: []
+    //selectedBins: []
   },
   reducers: {
     updateAxisAttributes: (state, action) => {
@@ -71,9 +71,9 @@ export const stateSlice = createSlice({
             yAxisAttribute_2: action.payload.yAxisAttribute
           }
     },
-    updateScatterplotSelectedItem: (state, action) => {
+    updateSelectedItemsIndices: (state, action) => {
       return {...state, selectedItemsIndices: action.payload}
-    }
+    },
   },
   extraReducers: builder => {
     builder.addCase(getSeoulBikeData.fulfilled, (state, action) => {
@@ -84,6 +84,6 @@ export const stateSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const {  updateAxisAttributes, updateScatterplotSelectedItem} = stateSlice.actions
+export const {  updateAxisAttributes, updateSelectedItemsIndices} = stateSlice.actions
 
 export default stateSlice.reducer

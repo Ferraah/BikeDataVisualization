@@ -2,7 +2,7 @@ import {useEffect, useRef} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import "./Scatterplot.css"
 import ScatterplotD3 from './ScatterPlotD3';
-import { updateScatterplotSelectedItem } from '../../redux/DataSetSlice';
+import { updateSelectedItemsIndices} from '../../redux/DataSetSlice';
 
 function ScatterplotContainer(){
     const state = useSelector(state => state.state);
@@ -60,7 +60,7 @@ function ScatterplotContainer(){
         }
         const handleOnBrushEnd = function(event){
             const selectedItemsIndices = scatterplotD3.getBrushSelectedItems(event);
-            dispatch(updateScatterplotSelectedItem(selectedItemsIndices));
+            dispatch(updateSelectedItemsIndices(selectedItemsIndices));
         }
 
         const controllerMethods={
@@ -70,8 +70,7 @@ function ScatterplotContainer(){
             handleOnBrushEnd
         }
        
-        if(state.dataSet.length>0 && state.xAxisAttribute_1!==null && state.yAxisAttribute_1!==null)
-            scatterplotD3.renderScatterplot(state.dataSet, state.selectedItemsIndices, state.xAxisAttribute_1,state.yAxisAttribute_1,controllerMethods);
+        scatterplotD3.renderScatterplot(state.dataSet, state.selectedItemsIndices, state.xAxisAttribute_1,state.yAxisAttribute_1,controllerMethods);
     },[state,dispatch]);// if dependencies, useEffect is called after each data update, in our case only matrixData changes.
 
 
