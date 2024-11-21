@@ -254,12 +254,24 @@ class HexbinD3 {
         
         this.highlightSelectedBins(selectedItemsIndices)
 
+        let brushingInProgress = false; // Flag to avoid infinite recursion
+
+        const brush = d3.brush()
+            .extent([[0, 0], [this.width, this.height]])
+            .on("end", (event) => {
+                if (!brushingInProgress) {
+                    this.controllerMethods.handleOnBrushEnd(event);
+                    
+                    // Clear the brush
+                    brushingInProgress = true;
+                    d3.select(this.hexbinSvg.node()).call(brush.move, null);
+                    brushingInProgress = false;
+                }
+            });
+        
         // Add a brush 
-        this.hexbinSvg.call(
-            d3.brush()
-                .extent([[0, 0], [this.width, this.height]])
-                .on("end", controllerMethods.handleOnBrushEnd)
-        )
+        this.hexbinSvg.call(brush);
+
     }
 
     highlightSelectedBins = function(selectedItemsIndices){

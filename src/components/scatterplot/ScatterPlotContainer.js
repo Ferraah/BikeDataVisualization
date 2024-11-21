@@ -49,7 +49,7 @@ function ScatterplotContainer(){
         const scatterplotD3 = scatterplotD3Ref.current;
 
         const handleOnClick = function(cellData){
-            alert(cellData.index);
+            //alert(cellData.index);
             //dispatch(updateSelectedItem(cellData));
         }
         const handleOnMouseEnter = function(cellData){

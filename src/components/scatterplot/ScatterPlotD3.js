@@ -20,6 +20,7 @@ class ScatterplotD3 {
     xAttribute;
     yAttribute;
     controllerMethods;
+    brushRef;
 
     seasonToColorMap = {
         "Spring":"rgb(240, 249, 33)",
@@ -216,12 +217,23 @@ class ScatterplotD3 {
                 }
             )
 
-        // Add a brush 
-        this.matSvg.call(
-            d3.brush()
+            let brushingInProgress = false; // Flag to avoid infinite recursion
+            const brush = d3.brush()
                 .extent([[0, 0], [this.width, this.height]])
-                .on("end", this.controllerMethods.handleOnBrushEnd)
-        )
+                .on("end", (event) => {
+                    if (!brushingInProgress) {
+                        this.controllerMethods.handleOnBrushEnd(event);
+                        
+                        // Clear the brush
+                        brushingInProgress = true;
+                        d3.select(this.matSvg.node()).call(brush.move, null);
+                        brushingInProgress = false;
+                    }
+                });
+            
+            // Add a brush 
+            this.matSvg.call(brush);
+
 
     }
 
