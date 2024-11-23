@@ -28,7 +28,7 @@ class ScatterplotD3 {
         "Autumn":"rgb(156, 23, 158)",
         "Winter":"rgb(13, 8, 135)"
     };
-
+    
     /**
      * For new elements, create the visual representation of the dot and append it to the enter selection
      * @param {*} enter 
@@ -217,20 +217,25 @@ class ScatterplotD3 {
                 }
             )
 
+
             let brushingInProgress = false; // Flag to avoid infinite recursion
             const brush = d3.brush()
                 .extent([[0, 0], [this.width, this.height]])
                 .on("end", (event) => {
+                    if (!event.selection) return;
+
                     if (!brushingInProgress) {
                         this.controllerMethods.handleOnBrushEnd(event);
                         
                         // Clear the brush
                         brushingInProgress = true;
+
                         d3.select(this.matSvg.node()).call(brush.move, null);
                         brushingInProgress = false;
                     }
-                });
+                })
             
+            //d3.select(this.matSvg.node()).call(brush.move, null);
             // Add a brush 
             this.matSvg.call(brush);
 

@@ -2,9 +2,9 @@ import './App.css';
 import { useEffect} from 'react';
 import { useDispatch } from 'react-redux';
 import { getSeoulBikeData } from './redux/DataSetSlice';
+import ControlBar from './components/controlbar/ControlBar';
 import ScatterplotContainer from './components/scatterplot/ScatterPlotContainer';
 import HexbinContainer from './components/hexbin/HexbinContainer';
-import ControlBar from './components/controlbar/ControlBar';
 
 
 // here import other dependencies

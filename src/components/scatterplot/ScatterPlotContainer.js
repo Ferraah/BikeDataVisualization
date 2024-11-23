@@ -3,6 +3,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import "./Scatterplot.css"
 import ScatterplotD3 from './ScatterPlotD3';
 import { updateSelectedItemsIndices} from '../../redux/DataSetSlice';
+import ScatterplotLegend from './LegendD3';
+
 
 function ScatterplotContainer(){
     const state = useSelector(state => state.state);
@@ -76,9 +78,11 @@ function ScatterplotContainer(){
 
 
     return (
+        <>
+            <ScatterplotLegend/>
         <div ref={divContainerRef} className='scatterplotDivContainer'>
-            <h1>Scatterplot Container</h1>
         </div>
+        </>
     )
 }
 

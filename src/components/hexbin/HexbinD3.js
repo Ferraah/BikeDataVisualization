@@ -27,15 +27,10 @@ class HexbinD3 {
     pointToIndicesMap;
     pointToBinMap;
     binToPointsMap;
-    
-
      
     constructor(el){
         this.el=el;
     };
-
-
-    
 
     createPointToBinMap = function(bins){
         const pointToBinMap = new Map();
@@ -51,7 +46,6 @@ class HexbinD3 {
      */
     prepareHexbinDataObjects = function(visData, xAttribute, yAttribute){
 
-        //const inputForHexbin = visData.map(i => [this.xScale(i[xAttribute]), this.yScale(i[yAttribute])])
         let inputForHexbin = [];
         const indexToPointMap = new Map();
         visData.forEach(i => {
@@ -219,7 +213,7 @@ class HexbinD3 {
         //this.binToPointsMap = new Map(Array.from(this.pointToBinMap, a => a.reverse())); // Because it's bijective
 
         // Create the color scale.
-        const color = d3.scaleSequential(d3.interpolateBuPu)
+        const color = d3.scaleSequential(d3.interpolatePuBu)
           .domain([0, d3.max(bins, d => d.length) / 2]);
           // Create the radius scale.
         const r = d3.scaleSqrt()
@@ -264,7 +258,7 @@ class HexbinD3 {
                     
                     // Clear the brush
                     brushingInProgress = true;
-                    d3.select(this.hexbinSvg.node()).call(brush.move, null);
+                    d3.select(this.hexbinSvg.node()).call(brush.clear);
                     brushingInProgress = false;
                 }
             });
