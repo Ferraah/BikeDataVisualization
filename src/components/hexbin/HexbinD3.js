@@ -79,7 +79,7 @@ class HexbinD3 {
             .attr("width", this.width + this.margin.left + this.margin.right)
             .attr("height", this.height + this.margin.top + this.margin.bottom)
             .append("g")
-            .attr("class","matSvgG")
+            .attr("class","hexbinSvgG")
             .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
         // Build xAxisG
@@ -248,21 +248,28 @@ class HexbinD3 {
         
         this.highlightSelectedBins(selectedItemsIndices)
 
-        let brushingInProgress = false; // Flag to avoid infinite recursion
-
         const brush = d3.brush()
             .extent([[0, 0], [this.width, this.height]])
+            .on("start", (event) => {
+                console.log("Brush start event:", event);
+                // Disable pointer events on dots when brushing starts
+                this.hexbinSvg.selectAll(".binG").style("pointer-events", "none");
+            })
+            .on("brush", (event) => {
+                console.log("Brush event:", event);
+            })
             .on("end", (event) => {
-                if (!brushingInProgress) {
+                console.log("Brush end event:", event);
+                if (!event.sourceEvent) return; // Only transition after input.
+                if (this.controllerMethods && this.controllerMethods.handleOnBrushEnd) {
                     this.controllerMethods.handleOnBrushEnd(event);
-                    
-                    // Clear the brush
-                    brushingInProgress = true;
-                    d3.select(this.hexbinSvg.node()).call(brush.clear);
-                    brushingInProgress = false;
                 }
+                d3.select(this.hexbinSvg.node()).call(brush.clear);
+                // Re-enable pointer events on dots when brushing ends
+                this.hexbinSvg.selectAll(".binG").style("pointer-events", "auto");
             });
-        
+
+
         // Add a brush 
         this.hexbinSvg.call(brush);
 

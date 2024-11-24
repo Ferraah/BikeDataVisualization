@@ -45,9 +45,6 @@ class ScatterplotD3 {
         .style("visibility", "visible")
         .append("path")
         .attr("d", (item) => item["Holiday"] === "Holiday" ? holidaySymbol(): nonHolidaySymbol())
-        .on("click", (event,itemData)=>{
-            this.controllerMethods.handleOnClick(itemData);
-        })
         return itemG
 
     }    
@@ -196,50 +193,53 @@ class ScatterplotD3 {
 
         // Reset the Axis with the current data
         this.updateAxis(visData,xAttribute,yAttribute);
-
+        
         // Bind the data to the dots
         this.matSvg.selectAll(".dotG")
             // all elements with the class .cellG (empty the first time)
-            .data(visData,(itemData)=>itemData.index)
+            .data(visData, (itemData) => itemData.index)
             .join(
                 // When data does not exist yet
-                enter=>{
+                enter => {
                     const itemG = this.createVisualForCategorical(enter);
-                    this.updateDotsPositionAndColor(itemG, selectedItemsIndices, xAttribute,yAttribute);
+                    this.updateDotsPositionAndColor(itemG, selectedItemsIndices, xAttribute, yAttribute);
                 },
                 // When data already exists
-                update=>{
-                    this.updateDotsPositionAndColor(update, selectedItemsIndices, xAttribute,yAttribute)
+                update => {
+                    this.updateDotsPositionAndColor(update, selectedItemsIndices, xAttribute, yAttribute);
                 },
                 // When data is removed
-                exit =>{
+                exit => {
                     exit.remove();
                 }
-            )
+            );
 
+        const brush = d3.brush()
+            .extent([[0, 0], [this.width, this.height]])
+            .on("start", (event) => {
+                console.log("Brush start event:", event);
+                // Disable pointer events on dots when brushing starts
+                this.matSvg.selectAll(".dotG").style("pointer-events", "none");
+            })
+            .on("brush", (event) => {
+                console.log("Brush event:", event);
+            })
+            .on("end", (event) => {
+                console.log("Brush end event:", event);
+                if (!event.sourceEvent) return; // Only transition after input.
+                if (this.controllerMethods && this.controllerMethods.handleOnBrushEnd) {
+                    this.controllerMethods.handleOnBrushEnd(event);
+                }
+                d3.select(this.matSvg.node()).call(brush.clear);
+                // Re-enable pointer events on dots when brushing ends
+                this.matSvg.selectAll(".dotG").style("pointer-events", "auto");
+            });
 
-            let brushingInProgress = false; // Flag to avoid infinite recursion
-            const brush = d3.brush()
-                .extent([[0, 0], [this.width, this.height]])
-                .on("end", (event) => {
-                    if (!event.selection) return;
+        // Add a brush
+        this.matSvg.call(brush);
 
-                    if (!brushingInProgress) {
-                        this.controllerMethods.handleOnBrushEnd(event);
-                        
-                        // Clear the brush
-                        brushingInProgress = true;
-
-                        d3.select(this.matSvg.node()).call(brush.move, null);
-                        brushingInProgress = false;
-                    }
-                })
-            
-            //d3.select(this.matSvg.node()).call(brush.move, null);
-            // Add a brush 
-            this.matSvg.call(brush);
-
-
+        // Ensure brush is cleared initially
+        brush.move(this.matSvg, null);
     }
 
     /**
