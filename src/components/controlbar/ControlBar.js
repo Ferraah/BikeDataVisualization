@@ -1,67 +1,74 @@
-import { useSelector, useDispatch } from "react-redux"
-import { updateAxisAttributes } from "../../redux/DataSetSlice";
+import React from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { updateAxisAttributes } from '../../redux/DataSetSlice';
+import ScatterplotLegend from '../scatterplot/LegendD3';
 
-export default function ControlBar(){
-
+export default function ControlBar() {
     const state = useSelector(state => state.state);
-    const dispatcher = useDispatch();
+    const dispatch = useDispatch();
 
     const handleSubmit = (e, i) => {
-        // Prevent the browser from reloading the page
         e.preventDefault();
-        // Read the form data
         const form = e.target;
         const formData = new FormData(form);
-        // You can work with it as a plain object.
         const formJson = Object.fromEntries(formData.entries());
         console.log(formJson);
-        dispatcher(updateAxisAttributes({
+        dispatch(updateAxisAttributes({
             xAxisAttribute: formJson.selectXAxis,
             yAxisAttribute: formJson.selectYAxis,
             plotIndex: i
         }));
-    }
+    };
 
     return (
-        <>
         <div>
-            <form method="post" onSubmit={(e) => handleSubmit(e,0)}>
-                <select name="selectYAxis">
-                    {
-                        state.numericalAttributes.map((item,i)=>{
-                            return <option key={i} value={item}>{item}</option>
-                        })
-                    }
-                </select>
-                <select name="selectXAxis">
-                    {
-                        state.numericalAttributes.map((item,i)=>{
-                            return <option key={i} value={item}>{item}</option>
-                        })
-                    }
-                </select>
-                <button type="submit">Submit</button>
-            </form>
+        <div className='row mt-2'>
+
+            <div className='col'>
+                <form method="post" onSubmit={(e) => handleSubmit(e, 0)}>
+                    <select name="selectYAxis">
+                        {
+                            state.numericalAttributes.map((item, i) => {
+                                return <option key={i} value={item} selected={item === state.yAxisAttribute_1}>{item}</option>
+                            })
+                        }
+                    </select>
+                    <select name="selectXAxis">
+                        {
+                            state.numericalAttributes.map((item, i) => {
+                                return <option key={i} value={item} selected={item === state.xAxisAttribute_1}>{item}</option>
+                            })
+                        }
+                    </select>
+                    <button type="submit">Visualize</button>
+                </form>
+            </div>
+            <div className='col'>
+                <form method="post" onSubmit={(e) => handleSubmit(e, 1)}>
+                    <select name="selectYAxis">
+                        {
+                            state.numericalAttributes.map((item, i) => {
+                                return <option key={i} value={item} selected={item === state.yAxisAttribute_2}>{item}</option>
+                            })
+                        }
+                    </select>
+                    <select name="selectXAxis">
+                        {
+                            state.numericalAttributes.map((item, i) => {
+                                return <option key={i} value={item} selected={item === state.xAxisAttribute_2}>{item}</option>
+                            })
+                        }
+                    </select>
+                    <button type="submit">Visualize</button>
+                </form>
+
+            </div>
         </div>
-        <div>
-            <form method="post" onSubmit={(e) => handleSubmit(e,1)}>
-                <select name="selectYAxis">
-                    {
-                        state.numericalAttributes.map((item,i)=>{
-                            return <option key={i} value={item}>{item}</option>
-                        })
-                    }
-                </select>
-                <select name="selectXAxis">
-                    {
-                        state.numericalAttributes.map((item,i)=>{
-                            return <option key={i} value={item}>{item}</option>
-                        })
-                    }
-                </select>
-                <button type="submit">Submit</button>
-            </form>
+        <div className='row align-items-start mt-4'>
+            <div className='col-6'>
+                <ScatterplotLegend />
+            </div>
         </div>
-        </>
-    )
+        </div>
+    );
 }

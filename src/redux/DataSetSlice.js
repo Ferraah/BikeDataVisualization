@@ -23,9 +23,13 @@ const prepareInitialState = (data) => {
     let numericalAttributes = [];
     let categoricalAttributes = [];
 
-    availableAttributes.forEach(attribute => { 
+    availableAttributes.forEach(attribute => {
+        
+        // Do not set index as an attribute
+        if (attribute === "index") return;
+
         // We also consider date as numerical despite being an object 
-        if (typeof parsedData[0][attribute] === 'number' || attribute === "Date") {
+        if (typeof parsedData[0][attribute] === 'number'|| attribute === "Date") {
             numericalAttributes.push(attribute);
         } else {
             categoricalAttributes.push(attribute);
@@ -35,7 +39,6 @@ const prepareInitialState = (data) => {
     return {
         dataSet: parsedData,
         selectedItemsIndices: [], // Empty in the beginning
-        //selectedBins: [],
         numericalAttributes,
         categoricalAttributes,
         xAxisAttribute_1 : numericalAttributes[0],
@@ -56,7 +59,6 @@ export const stateSlice = createSlice({
     xAxisAttribute_2 : null,
     yAxisAttribute_2 : null,
     selectedItemsIndices: [],
-    //selectedBins: []
   },
   reducers: {
     updateAxisAttributes: (state, action) => {

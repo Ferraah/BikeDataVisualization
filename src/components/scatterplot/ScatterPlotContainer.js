@@ -79,8 +79,7 @@ function ScatterplotContainer(){
 
     return (
         <>
-            <ScatterplotLegend/>
-        <div ref={divContainerRef} className='scatterplotDivContainer'>
+        <div ref={divContainerRef} className='scatterplotDivContainer h-100'>
         </div>
         </>
     )

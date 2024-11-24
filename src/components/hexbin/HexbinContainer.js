@@ -79,7 +79,6 @@ function HexbinContainer(){
 
     return (
         <div ref={divContainerRef} className='divHexbinContainer'>
-            <h1>HexbinContainer</h1>
         </div>
     )
 }

@@ -5,7 +5,7 @@ import * as d3 from 'd3'
 //import CrossLogo from "../../assets/cross.svg"
 
 class ScatterplotD3 {
-    margin = {top: 50, right: 10, bottom: 150, left: 100};
+    margin = {top: 10, right: 100, bottom: 200, left: 100};
     size;
     height;
     width;
@@ -43,6 +43,7 @@ class ScatterplotD3 {
 
         itemG.style("opacity",this.defaultOpacity)
         .style("visibility", "visible")
+        .style("pointer-events", "none") // prevent mouse events conflicts with brush
         .append("path")
         .attr("d", (item) => item["Holiday"] === "Holiday" ? holidaySymbol(): nonHolidaySymbol())
         return itemG
@@ -214,32 +215,22 @@ class ScatterplotD3 {
                 }
             );
 
+
+
         const brush = d3.brush()
-            .extent([[0, 0], [this.width, this.height]])
-            .on("start", (event) => {
-                console.log("Brush start event:", event);
-                // Disable pointer events on dots when brushing starts
-                this.matSvg.selectAll(".dotG").style("pointer-events", "none");
-            })
-            .on("brush", (event) => {
-                console.log("Brush event:", event);
-            })
-            .on("end", (event) => {
-                console.log("Brush end event:", event);
-                if (!event.sourceEvent) return; // Only transition after input.
-                if (this.controllerMethods && this.controllerMethods.handleOnBrushEnd) {
-                    this.controllerMethods.handleOnBrushEnd(event);
-                }
+        .extent([[0, 0], [this.width, this.height]])
+        .on("end", (event) => {
+            if (!event.sourceEvent) return; // Only transition after input.
+
+                this.controllerMethods.handleOnBrushEnd(event);
                 d3.select(this.matSvg.node()).call(brush.clear);
-                // Re-enable pointer events on dots when brushing ends
-                this.matSvg.selectAll(".dotG").style("pointer-events", "auto");
-            });
+        });
+
 
         // Add a brush
         this.matSvg.call(brush);
 
-        // Ensure brush is cleared initially
-        brush.move(this.matSvg, null);
+
     }
 
     /**

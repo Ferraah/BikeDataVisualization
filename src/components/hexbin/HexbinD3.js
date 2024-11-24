@@ -1,11 +1,12 @@
 import * as d3 from 'd3'
 import * as d3Hexbin from 'd3-hexbin'
 import lodash from 'lodash'
+import Legend from 'd3-color-legend'
 //import { getDefaultFontSize } from '../../utils/helper';
 //import HammerLogo from "../../assets/hammer.svg"
 
 class HexbinD3 {
-    margin = {top: 50, right: 10, bottom: 150, left: 100};
+    margin = {top: 10, right: 100, bottom: 200, left: 100};
     
     size;
     height;
@@ -213,8 +214,9 @@ class HexbinD3 {
         //this.binToPointsMap = new Map(Array.from(this.pointToBinMap, a => a.reverse())); // Because it's bijective
 
         // Create the color scale.
-        const color = d3.scaleSequential(d3.interpolatePuBu)
-          .domain([0, d3.max(bins, d => d.length) / 2]);
+        //const color = d3.scaleSequential(d3.interpolatePuBu)
+        const color = d3.scaleSequential(d3.interpolateViridis)
+          .domain([d3.max(bins, d => d.length) / 2, 0]);
           // Create the radius scale.
         const r = d3.scaleSqrt()
         .domain([0, d3.max(bins, d => d.length) / 2])
@@ -229,11 +231,14 @@ class HexbinD3 {
                 console.log("enter: " , enter.data().length)
                 const itemG = enter.append("g")
                     .attr("class","binG")
+                    .style("pointer-events", "none"); // Prevents conflicts with brush
+
 
                 itemG.append("path")
                 .attr("class", "hexagon")
                 .attr("fill", bin => color(bin.length))
                 .attr("d", d => this.hexbin.hexagon(r(d.length)))
+                //.attr("d", d => this.hexbin.hexagon())
                 this.updateBinsElements(itemG, selectedItemsIndices)
             },
             update => {
@@ -250,28 +255,16 @@ class HexbinD3 {
 
         const brush = d3.brush()
             .extent([[0, 0], [this.width, this.height]])
-            .on("start", (event) => {
-                console.log("Brush start event:", event);
-                // Disable pointer events on dots when brushing starts
-                this.hexbinSvg.selectAll(".binG").style("pointer-events", "none");
-            })
-            .on("brush", (event) => {
-                console.log("Brush event:", event);
-            })
             .on("end", (event) => {
-                console.log("Brush end event:", event);
                 if (!event.sourceEvent) return; // Only transition after input.
-                if (this.controllerMethods && this.controllerMethods.handleOnBrushEnd) {
-                    this.controllerMethods.handleOnBrushEnd(event);
-                }
-                d3.select(this.hexbinSvg.node()).call(brush.clear);
-                // Re-enable pointer events on dots when brushing ends
-                this.hexbinSvg.selectAll(".binG").style("pointer-events", "auto");
-            });
 
+                    this.controllerMethods.handleOnBrushEnd(event);
+                    d3.select(this.hexbinSvg.node()).call(brush.clear);
+            });
 
         // Add a brush 
         this.hexbinSvg.call(brush);
+
 
     }
 

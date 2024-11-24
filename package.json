@@ -9,6 +9,7 @@
     "@testing-library/user-event": "^13.5.0",
     "bootstrap": "^5.3.3",
     "d3": "^7.9.0",
+    "d3-color-legend": "^1.4.1",
     "d3-hexbin": "^0.2.2",
     "lodash": "^4.17.21",
     "papaparse": "^5.4.1",
