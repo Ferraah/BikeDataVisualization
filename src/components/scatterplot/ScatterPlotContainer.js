@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import "./Scatterplot.css"
 import ScatterplotD3 from './ScatterPlotD3';
 import { updateSelectedItemsIndices} from '../../redux/DataSetSlice';
-import ScatterplotLegend from './LegendD3';
+import ScatterplotLegend from '../legend/LegendD3';
 
 
 function ScatterplotContainer(){

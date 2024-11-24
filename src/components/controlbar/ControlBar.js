@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateAxisAttributes } from '../../redux/DataSetSlice';
-import ScatterplotLegend from '../scatterplot/LegendD3';
+import ScatterplotLegend from '../legend/LegendD3';
 
 export default function ControlBar() {
     const state = useSelector(state => state.state);
